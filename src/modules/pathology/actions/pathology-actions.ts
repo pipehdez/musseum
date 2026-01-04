@@ -1,14 +1,26 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { pathologies } from "../db/schema";
-import { eq } from "drizzle-orm";
+import { pathologies, users, roles } from "../db/schema";
+import { eq, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { getSession } from "@/lib/auth";
 
 export async function getPathologies() {
-    return await db.query.pathologies.findMany({
-        orderBy: (p, { desc }) => [desc(p.id)],
-    });
+    return await db
+        .select({
+            id: pathologies.id,
+            name: pathologies.name,
+            slug: pathologies.slug,
+            description: pathologies.description,
+            createdAt: pathologies.createdAt,
+            creatorName: users.name,
+            creatorRole: roles.name,
+        })
+        .from(pathologies)
+        .leftJoin(users, eq(pathologies.createdBy, users.id))
+        .leftJoin(roles, eq(users.roleId, roles.id))
+        .orderBy(desc(pathologies.id));
 }
 
 export async function getPathologyById(id: number) {
@@ -30,8 +42,11 @@ export async function createPathology(data: {
     details?: string;
     images?: string;
 }) {
+    const session = await getSession();
+
     const result = await db.insert(pathologies).values({
         ...data,
+        createdBy: session?.user?.id,
         updatedAt: new Date().toISOString(),
     }).returning();
 

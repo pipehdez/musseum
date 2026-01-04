@@ -1,11 +1,36 @@
-import { LayoutDashboard, Microscope, Settings, Users } from "lucide-react";
+import { LayoutDashboard, Microscope, Settings, Users, LogOut } from "lucide-react";
 import Link from "next/link";
+import { getSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
-export default function AdminLayout({
+async function LogOutButton() {
+    return (
+        <form action={async () => {
+            "use server";
+            const { cookies } = await import("next/headers");
+            (await cookies()).set("session", "", { expires: new Date(0) });
+            redirect("/login");
+        }}>
+            <Button variant="ghost" size="sm" className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 gap-2">
+                <LogOut size={16} />
+                Cerrar Sesión
+            </Button>
+        </form>
+    );
+}
+
+export default async function AdminLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const session = await getSession();
+
+    if (!session) {
+        redirect("/login");
+    }
+
     return (
         <div className="flex h-screen bg-slate-50">
             {/* Sidebar */}
@@ -27,7 +52,7 @@ export default function AdminLayout({
                     </Link>
                     <Link
                         href="/admin/users"
-                        className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-400 cursor-not-allowed rounded-lg hover:bg-slate-100 transition-colors"
+                        className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
                     >
                         <Users size={18} />
                         Usuarios
@@ -40,16 +65,17 @@ export default function AdminLayout({
                         Configuración
                     </Link>
                 </nav>
-                <div className="p-4 border-t">
+                <div className="p-4 border-t space-y-2">
                     <div className="flex items-center gap-3 px-4 py-2">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs">
-                            AD
+                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs uppercase">
+                            {session.user.name.substring(0, 2)}
                         </div>
-                        <div>
-                            <p className="text-sm font-medium text-slate-900">Admin</p>
-                            <p className="text-xs text-slate-500 italic">Facultad de Medicina</p>
+                        <div className="flex-1 overflow-hidden">
+                            <p className="text-sm font-medium text-slate-900 truncate">{session.user.name}</p>
+                            <p className="text-xs text-slate-500 italic truncate uppercase">{session.user.role}</p>
                         </div>
                     </div>
+                    <LogOutButton />
                 </div>
             </aside>
 

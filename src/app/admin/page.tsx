@@ -48,22 +48,23 @@ export default async function AdminDashboard() {
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-slate-50">
-                                <TableHead className="w-[100px]">ID</TableHead>
+                                <TableHead className="w-[80px]">ID</TableHead>
                                 <TableHead>Nombre</TableHead>
                                 <TableHead>Slug (URL)</TableHead>
                                 <TableHead>QR</TableHead>
+                                <TableHead>Autor</TableHead>
                                 <TableHead className="text-right">Acciones</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {pathologies.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="h-24 text-center text-slate-500">
+                                    <TableCell colSpan={6} className="h-24 text-center text-slate-500">
                                         No hay patologías registradas. Comienza creando una nueva.
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                pathologies.map((pathology) => (
+                                pathologies.map((pathology: any) => (
                                     <TableRow key={pathology.id} className="hover:bg-slate-50 transition-colors">
                                         <TableCell className="font-medium text-slate-500">#{pathology.id}</TableCell>
                                         <TableCell className="font-semibold text-slate-800">{pathology.name}</TableCell>
@@ -73,8 +74,12 @@ export default async function AdminDashboard() {
                                             </Badge>
                                         </TableCell>
                                         <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <QrPreviewDialog pathology={pathology} />
+                                            <QrPreviewDialog pathology={pathology} />
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-medium text-slate-900">{pathology.creatorName || "Sistema"}</span>
+                                                <span className="text-[10px] uppercase text-slate-500">{pathology.creatorRole || "Admin"}</span>
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right">
@@ -86,7 +91,7 @@ export default async function AdminDashboard() {
                                                 </Link>
                                                 <Link href={`/admin/${pathology.id}/edit`}>
                                                     <Button variant="ghost" size="icon" title="Editar">
-                                                        <Plus className="h-4 w-4 rotate-45" /> {/* Use edit icon if preferred */}
+                                                        <Plus className="h-4 w-4 rotate-45" />
                                                     </Button>
                                                 </Link>
                                             </div>
@@ -114,7 +119,7 @@ import {
 
 function QrPreviewDialog({ pathology }: { pathology: any }) {
     // Determine the public URL (mocked for now, but should use environment variable in production)
-    const publicUrl = `http://localhost:3001/pathology/${pathology.slug}`;
+    const publicUrl = `http://192.168.1.85:3001/pathology/${pathology.slug}`;
 
     return (
         <Dialog>
