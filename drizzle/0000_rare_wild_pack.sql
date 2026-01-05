@@ -1,4 +1,10 @@
-CREATE OR IGNORE TABLE `pathologies` (
+CREATE TABLE `modules` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`name` text NOT NULL
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `modules_name_unique` ON `modules` (`name`);--> statement-breakpoint
+CREATE TABLE `pathologies` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
 	`slug` text NOT NULL,
@@ -13,10 +19,20 @@ CREATE OR IGNORE TABLE `pathologies` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `pathologies_slug_unique` ON `pathologies` (`slug`);--> statement-breakpoint
+CREATE TABLE `pathology_images` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`pathology_id` integer NOT NULL,
+	`url` text NOT NULL,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP,
+	FOREIGN KEY (`pathology_id`) REFERENCES `pathologies`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
 CREATE TABLE `permissions` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
-	`module` text NOT NULL
+	`module` text NOT NULL,
+	`module_id` integer,
+	FOREIGN KEY (`module_id`) REFERENCES `modules`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `permissions_name_unique` ON `permissions` (`name`);--> statement-breakpoint

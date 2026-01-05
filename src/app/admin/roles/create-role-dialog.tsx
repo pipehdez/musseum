@@ -44,7 +44,7 @@ export function CreateRoleDialog() {
                 const data = await res.json();
                 toast.error(data.error || "Error al crear el rol");
             }
-        } catch (error) {
+        } catch (err) {
             toast.error("Error de conexión");
         } finally {
             setIsLoading(false);

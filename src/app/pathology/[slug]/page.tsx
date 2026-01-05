@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
+import Image from "next/image";
 
 interface PathologyDetailPageProps {
     params: Promise<{ slug: string }>;
@@ -69,7 +70,9 @@ export default async function PathologyDetailPage({ params }: PathologyDetailPag
                             <div className="grid grid-cols-1 gap-4">
                                 {images.map((img: string, idx: number) => (
                                     <div key={idx} className="relative aspect-video rounded-2xl overflow-hidden border shadow-sm group">
-                                        <img
+                                        <Image
+                                            width={500}
+                                            height={500}
                                             src={img}
                                             alt={`${pathology.name} - Imagen ${idx + 1}`}
                                             className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"

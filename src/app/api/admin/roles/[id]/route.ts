@@ -28,7 +28,7 @@ export async function PATCH(
             .returning();
 
         return NextResponse.json(result[0]);
-    } catch (error) {
+    } catch (err) {
         return NextResponse.json({ error: "Error al actualizar el rol" }, { status: 500 });
     }
 }
@@ -54,7 +54,7 @@ export async function DELETE(
 
         await db.delete(roles).where(eq(roles.id, id));
         return NextResponse.json({ success: true });
-    } catch (error) {
+    } catch (err) {
         return NextResponse.json({ error: "Error al eliminar el rol" }, { status: 500 });
     }
 }

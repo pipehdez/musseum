@@ -3,12 +3,10 @@ import { decrypt } from "@/lib/auth";
 
 // Rutas públicas y protegidas
 const protectedRoutes = ["/admin"];
-const publicRoutes = ["/login", "/", "/pathology"];
 
 export default async function middleware(req: NextRequest) {
     const path = req.nextUrl.pathname;
     const isProtectedRoute = protectedRoutes.some((route) => path.startsWith(route));
-    const isPublicRoute = publicRoutes.includes(path);
 
     const cookie = (await req.cookies).get("session")?.value;
     const session = cookie ? await decrypt(cookie).catch(() => null) : null;

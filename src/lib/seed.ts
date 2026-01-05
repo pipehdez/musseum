@@ -1,10 +1,13 @@
-import { db } from "./db";
 import { roles, permissions, rolePermissions, users, modules } from "@/modules/pathology/db/schema";
 import { eq } from "drizzle-orm";
 import { hashPassword } from "./auth";
+const url = process.env.DATABASE_URL || "sqlite.db";
 
-async function main() {
-    console.log("Seeding database...");
+async function seedSqlite() {
+    const { drizzle } = await import("drizzle-orm/better-sqlite3");
+    const Database = (await import("better-sqlite3")).default;
+    const sqlite = new Database(url);
+    const db = drizzle(sqlite);
 
     // 1. Create Roles
     await db.insert(roles).values([
@@ -14,6 +17,8 @@ async function main() {
     ]).onConflictDoNothing();
 
     const [saRole] = await db.select().from(roles).where(eq(roles.name, "superadmin")).limit(1);
+    const [adminRole] = await db.select().from(roles).where(eq(roles.name, "admin")).limit(1);
+    const [patRole] = await db.select().from(roles).where(eq(roles.name, "patologo")).limit(1);
 
     // 2. Create Modules
     await db.insert(modules).values([
@@ -28,15 +33,33 @@ async function main() {
         { name: "pathology:edit", module: "pathology", moduleId: pathologyModule.id },
         { name: "pathology:delete", module: "pathology", moduleId: pathologyModule.id },
         { name: "pathology:view", module: "pathology", moduleId: pathologyModule.id },
+        { name: "pathology:search", module: "pathology", moduleId: pathologyModule.id },
     ]).onConflictDoNothing();
 
     const allPerms = await db.select().from(permissions);
 
-    // 4. Link Permissions to Superadmin
     for (const perm of allPerms) {
         await db.insert(rolePermissions).values({
             roleId: saRole.id,
             permissionId: perm.id,
+        }).onConflictDoNothing();
+        await db.insert(rolePermissions).values({
+            roleId: adminRole.id,
+            permissionId: perm.id,
+        }).onConflictDoNothing();
+    }
+    const viewPerm = allPerms.find(p => p.name === "pathology:view");
+    const searchPerm = allPerms.find(p => p.name === "pathology:search");
+    if (viewPerm) {
+        await db.insert(rolePermissions).values({
+            roleId: patRole.id,
+            permissionId: viewPerm.id,
+        }).onConflictDoNothing();
+    }
+    if (searchPerm) {
+        await db.insert(rolePermissions).values({
+            roleId: patRole.id,
+            permissionId: searchPerm.id,
         }).onConflictDoNothing();
     }
 
@@ -58,6 +81,11 @@ async function main() {
             .set({ password: hashedPassword, roleId: saRole.id })
             .where(eq(users.email, "admin@museum.com"));
     }
+}
+
+async function main() {
+    console.log("Seeding database...");
+    await seedSqlite();
 
     console.log("Seeding completed successfully.");
 }

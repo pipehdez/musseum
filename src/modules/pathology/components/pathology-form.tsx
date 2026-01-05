@@ -38,34 +38,67 @@ const formSchema = z.object({
     images: z.string().optional(),
 });
 
+interface PathologyInitialData {
+    id: number;
+    name: string;
+    slug: string;
+    description: string;
+    details?: string | null;
+    images?: string | null;
+}
+
 interface PathologyFormProps {
-    initialData?: any;
+    initialData?: PathologyInitialData;
     isEditing?: boolean;
 }
 
 export function PathologyForm({ initialData, isEditing = false }: PathologyFormProps) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
-        defaultValues: initialData || {
-            name: "",
-            slug: "",
-            description: "",
-            details: "",
-            images: "",
-        },
+        defaultValues: initialData
+            ? {
+                name: initialData.name,
+                slug: initialData.slug,
+                description: initialData.description,
+                details: initialData.details ?? "",
+                images: initialData.images ?? "",
+            }
+            : {
+                name: "",
+                slug: "",
+                description: "",
+                details: "",
+                images: "",
+            },
     });
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setIsLoading(true);
         try {
-            if (isEditing) {
-                await updatePathology(initialData.id, values);
+            let uploadedUrls: string[] = [];
+            if (selectedFiles && selectedFiles.length > 0) {
+                const fd = new FormData();
+                Array.from(selectedFiles).forEach((f) => fd.append("files", f));
+                const res = await fetch("/api/upload", { method: "POST", body: fd });
+                if (res.ok) {
+                    const data = await res.json();
+                    uploadedUrls = data.urls || [];
+                } else {
+                    toast.error("Error al subir imágenes");
+                }
+            }
+            const existing = (values.images || "").split(",").map(s => s.trim()).filter(Boolean);
+            const finalImages = [...existing, ...uploadedUrls].join(",");
+            const payload = { ...values, images: finalImages };
+            if (isEditing && initialData) {
+                await updatePathology(initialData.id, payload);
                 toast.success("Patología actualizada con éxito");
             } else {
-                await createPathology(values);
+                await createPathology(payload);
                 toast.success("Patología creada con éxito");
             }
             router.push("/admin");
@@ -181,13 +214,16 @@ export function PathologyForm({ initialData, isEditing = false }: PathologyFormP
                                 <FormControl>
                                     <Input placeholder="https://ejemplo.com/imagen.jpg (Separadas por coma)" {...field} />
                                 </FormControl>
-                                <FormDescription>
-                                    Por ahora, ingresa URLs directas a las imágenes.
-                                </FormDescription>
+                                <FormDescription>También puedes subir imágenes desde tu equipo.</FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
+                    <div>
+                        <FormLabel>Subir Imágenes</FormLabel>
+                        <Input type="file" multiple accept="image/*" onChange={(e) => setSelectedFiles(e.target.files)} />
+                        <p className="text-xs text-slate-500 mt-1">Se guardarán en /uploads y se asociarán a la patología.</p>
+                    </div>
 
                     <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
                         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

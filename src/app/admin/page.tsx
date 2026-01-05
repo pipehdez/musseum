@@ -2,10 +2,18 @@ import { getPathologies } from "@/modules/pathology/actions/pathology-actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, ExternalLink, QrCode } from "lucide-react";
+import { Plus, ExternalLink, QrCode } from "lucide-react";
 import Link from "next/link";
 import { PathologyQRCode } from "@/components/qr-code";
 import { Badge } from "@/components/ui/badge";
+
+type PathologyListItem = {
+    id: number;
+    name: string;
+    slug: string;
+    creatorName?: string | null;
+    creatorRole?: string | null;
+};
 
 export default async function AdminDashboard() {
     const pathologies = await getPathologies();
@@ -64,7 +72,7 @@ export default async function AdminDashboard() {
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                pathologies.map((pathology: any) => (
+                                pathologies.map((pathology: PathologyListItem) => (
                                     <TableRow key={pathology.id} className="hover:bg-slate-50 transition-colors">
                                         <TableCell className="font-medium text-slate-500">#{pathology.id}</TableCell>
                                         <TableCell className="font-semibold text-slate-800">{pathology.name}</TableCell>
@@ -117,7 +125,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 
-function QrPreviewDialog({ pathology }: { pathology: any }) {
+function QrPreviewDialog({ pathology }: { pathology: PathologyListItem }) {
     // Determine the public URL (mocked for now, but should use environment variable in production)
     const publicUrl = `${process.env.NEXT_PUBLIC_DOMAIN}/pathology/${pathology.slug}`;
 

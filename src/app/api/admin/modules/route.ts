@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { modules } from "@/modules/pathology/db/schema";
 import { getSession } from "@/lib/auth";
-import { eq } from "drizzle-orm";
 
 export const runtime = "nodejs";
 

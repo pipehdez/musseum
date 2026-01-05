@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, Save, Shield, CheckCircle2, Circle } from "lucide-react";
+import { ArrowLeft, Loader2, Save, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -16,10 +16,15 @@ interface Permission {
     module: string;
 }
 
+interface Role {
+    id: number;
+    name: string;
+}
+
 export default function RolePermissionsPage() {
     const params = useParams();
-    const roleId = params.id;
-    const [role, setRole] = useState<any>(null);
+    const roleId = params.id as string;
+    const [role, setRole] = useState<Role | null>(null);
     const [permissions, setPermissions] = useState<Permission[]>([]);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -31,18 +36,18 @@ export default function RolePermissionsPage() {
             try {
                 // Fetch all roles to find the current one (could be a specific API but this works)
                 const rolesRes = await fetch("/api/admin/roles");
-                const rolesData = await rolesRes.json();
-                const currentRole = rolesData.find((r: any) => r.id.toString() === roleId);
+                const rolesData: Role[] = await rolesRes.json();
+                const currentRole = rolesData.find((r) => r.id.toString() === roleId) ?? null;
                 setRole(currentRole);
 
                 // Fetch all available permissions
                 const permsRes = await fetch("/api/admin/permissions");
-                const permsData = await permsRes.json();
+                const permsData: Permission[] = await permsRes.json();
                 setPermissions(permsData);
 
                 // Fetch currently assigned permissions for this role
                 const assignedRes = await fetch(`/api/admin/roles/${roleId}/permissions`);
-                const assignedData = await assignedRes.json();
+                const assignedData: number[] = await assignedRes.json();
                 setSelectedIds(assignedData);
             } catch (err) {
                 toast.error("Error al cargar datos");

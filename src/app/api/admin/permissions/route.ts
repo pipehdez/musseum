@@ -24,7 +24,7 @@ export async function GET() {
             .leftJoin(modules, eq(permissions.moduleId, modules.id));
 
         return NextResponse.json(allPermissions);
-    } catch (error) {
+    } catch (err) {
         return NextResponse.json({ error: "No se pudieron cargar los permisos" }, { status: 500 });
     }
 }

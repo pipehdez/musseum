@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { pathologies, users, roles } from "../db/schema";
+import { pathologies, users, roles, pathologyImages } from "../db/schema";
 import { eq, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/auth";
@@ -68,8 +68,16 @@ export async function createPathology(data: {
         updatedAt: new Date().toISOString(),
     }).returning();
 
+    const created = result[0];
+    const urls = (data.images || "").split(",").map(s => s.trim()).filter(Boolean);
+    if (urls.length > 0) {
+        await db.insert(pathologyImages).values(
+            urls.map((u) => ({ pathologyId: created.id, url: u }))
+        );
+    }
+
     revalidatePath("/admin");
-    return result[0];
+    return created;
 }
 
 export async function updatePathology(id: number, data: {
@@ -90,10 +98,19 @@ export async function updatePathology(id: number, data: {
         .where(eq(pathologies.id, id))
         .returning();
 
+    const updated = result[0];
+    const urls = (data.images || "").split(",").map(s => s.trim()).filter(Boolean);
+    if (urls.length > 0) {
+        await db.delete(pathologyImages).where(eq(pathologyImages.pathologyId, id));
+        await db.insert(pathologyImages).values(
+            urls.map((u) => ({ pathologyId: id, url: u }))
+        );
+    }
+
     revalidatePath("/admin");
     revalidatePath(`/admin/${id}/edit`);
-    revalidatePath(`/pathology/${data.slug || result[0].slug}`);
-    return result[0];
+    revalidatePath(`/pathology/${data.slug || updated.slug}`);
+    return updated;
 }
 
 export async function deletePathology(id: number) {

@@ -1,8 +1,8 @@
 import { db } from "@/lib/db";
-import { roles, rolePermissions, permissions } from "@/modules/pathology/db/schema";
+import { roles, rolePermissions } from "@/modules/pathology/db/schema";
 import { count, eq } from "drizzle-orm";
 import { Button } from "@/components/ui/button";
-import { Plus, Shield, Settings2, Trash2, Key } from "lucide-react";
+import { Shield, Settings2, Trash2, Key } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,7 +13,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { CreateRoleDialog } from "./create-role-dialog";
 
 export default async function RolesPage() {

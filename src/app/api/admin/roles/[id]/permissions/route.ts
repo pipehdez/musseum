@@ -1,5 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { db } from "@/lib/db";
+// import * as schema from "@/modules/pathology/db/schema";
+// const sqliteDb = db as import("drizzle-orm/better-sqlite3").BetterSQLite3Database<typeof schema>;
 import { rolePermissions, permissions } from "@/modules/pathology/db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { getSession } from "@/lib/auth";
@@ -23,7 +25,7 @@ export async function GET(
             .where(eq(rolePermissions.roleId, roleId));
 
         return NextResponse.json(assigned.map(({ permissionId }: { permissionId: number }) => permissionId));
-    } catch (error) {
+    } catch (err) {
         return NextResponse.json({ error: "Error al cargar permisos del rol" }, { status: 500 });
     }
 }
@@ -58,18 +60,16 @@ export async function POST(
             return NextResponse.json({ error: "Permisos inexistentes", invalidIds }, { status: 400 });
         }
 
-        // Transactions with better-sqlite3 must be síncronas
-        db.transaction((tx: any) => {
-            tx.delete(rolePermissions).where(eq(rolePermissions.roleId, roleId)).run();
-            if (permissionIds.length > 0) {
-                tx.insert(rolePermissions).values(
-                    permissionIds.map((pid) => ({
-                        roleId,
-                        permissionId: pid,
-                    }))
-                ).run();
-            }
-        });
+        // Operaciones síncronas con better-sqlite3
+        db.delete(rolePermissions).where(eq(rolePermissions.roleId, roleId)).run();
+        if (permissionIds.length > 0) {
+            db.insert(rolePermissions).values(
+                permissionIds.map((pid) => ({
+                    roleId,
+                    permissionId: pid,
+                }))
+            ).run();
+        }
 
         return NextResponse.json({ success: true });
     } catch (error) {

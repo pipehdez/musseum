@@ -46,3 +46,10 @@ export const pathologies = sqliteTable("pathologies", {
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const pathologyImages = sqliteTable("pathology_images", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  pathologyId: integer("pathology_id").notNull().references(() => pathologies.id, { onDelete: 'cascade' }),
+  url: text("url").notNull(),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+});
