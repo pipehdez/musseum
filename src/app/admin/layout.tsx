@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { hasPermissionModule } from "@/lib/rbac";
 
 async function LogOutButton() {
     return (
@@ -30,6 +31,15 @@ export default async function AdminLayout({
     if (!session) {
         redirect("/login");
     }
+    const role = session.user.role ?? "";
+
+    const permission = !["superadmin", "admin"].includes(role)
+    if (!["superadmin", "admin"].includes(role)) {
+        const allowed = await hasPermissionModule("pathology", "pathology:view");
+        if (!allowed) return [];
+    }
+
+    console.log("permission", permission);
 
     return (
         <div className="flex h-screen bg-slate-50">
@@ -43,6 +53,7 @@ export default async function AdminLayout({
                     <p className="text-xs text-slate-500 mt-1">Panel de Administración</p>
                 </div>
                 <nav className="flex-1 p-4 space-y-1">
+                    {(await hasPermissionModule("pathology", "pathology:view")) && (
                     <Link
                         href="/admin"
                         className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
@@ -50,27 +61,34 @@ export default async function AdminLayout({
                         <LayoutDashboard size={18} />
                         Patologías
                     </Link>
-                    <Link
-                        href="/admin/modules"
-                        className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
-                    >
-                        <Settings2 size={18} />
-                        Módulos y Permisos
-                    </Link>
-                    <Link
-                        href="/admin/users"
-                        className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
-                    >
-                        <Users size={18} />
-                        Usuarios
-                    </Link>
-                    <Link
-                        href="/admin/roles"
-                        className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
-                    >
-                        <Shield size={18} />
-                        Roles y Permisos
-                    </Link>
+                    )}
+                    {!permission && (
+                        <Link
+                            href="/admin/modules"
+                            className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+                        >
+                            <Settings2 size={18} />
+                            Módulos y Permisos
+                        </Link>
+                    )}
+                    {!permission && (
+                        <Link
+                            href="/admin/users"
+                            className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+                        >
+                            <Users size={18} />
+                            Usuarios
+                        </Link>
+                    )}
+                    {!permission && (
+                        <Link
+                            href="/admin/roles"
+                            className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+                        >
+                            <Shield size={18} />
+                            Roles y Permisos
+                        </Link>
+                    )}
                     <Link
                         href="/admin/settings"
                         className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-400 cursor-not-allowed rounded-lg hover:bg-slate-100 transition-colors"

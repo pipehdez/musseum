@@ -8,6 +8,12 @@ import { getSession } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 
 export async function getPathologies() {
+    const session = await getSession();
+    const role = session?.user?.role ?? "";
+    if (!["superadmin", "admin"].includes(role)) {
+        const allowed = await hasPermission("pathology:view");
+        if (!allowed) return [];
+    }
     return await db
         .select({
             id: pathologies.id,
@@ -31,6 +37,12 @@ export async function getPathologyById(id: number) {
 }
 
 export async function getPathologyBySlug(slug: string) {
+    const session = await getSession();
+    const role = session?.user?.role ?? "";
+    if (!["superadmin", "admin"].includes(role)) {
+        const allowed = await hasPermission("pathology:view");
+        if (!allowed) return null;
+    }
     return await db.query.pathologies.findFirst({
         where: eq(pathologies.slug, slug),
     });
@@ -44,7 +56,8 @@ export async function createPathology(data: {
     images?: string;
 }) {
     const session = await getSession();
-    const allowed = await hasPermission("pathology:create");
+    const role = session?.user?.role ?? "";
+    const allowed = ["superadmin", "admin"].includes(role) || await hasPermission("pathology:create");
     if (!allowed) {
         throw new Error("No autorizado");
     }
@@ -66,7 +79,9 @@ export async function updatePathology(id: number, data: {
     details?: string;
     images?: string;
 }) {
-    const allowed = await hasPermission("pathology:edit");
+    const session = await getSession();
+    const role = session?.user?.role ?? "";
+    const allowed = ["superadmin", "admin"].includes(role) || await hasPermission("pathology:edit");
     if (!allowed) {
         throw new Error("No autorizado");
     }
@@ -82,7 +97,9 @@ export async function updatePathology(id: number, data: {
 }
 
 export async function deletePathology(id: number) {
-    const allowed = await hasPermission("pathology:delete");
+    const session = await getSession();
+    const role = session?.user?.role ?? "";
+    const allowed = ["superadmin", "admin"].includes(role) || await hasPermission("pathology:delete");
     if (!allowed) {
         throw new Error("No autorizado");
     }

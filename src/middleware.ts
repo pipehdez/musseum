@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { decrypt } from "@/lib/auth";
 
 // Add paths that require authentication here
-const protectedRoutes = ["/admin"];
-const publicRoutes = ["/login", "/", "/pathology"];
+const protectedRoutes = ["/admin", "/pathology"];
+const publicRoutes = ["/login", "/"];
 
 export default async function middleware(req: NextRequest) {
     const path = req.nextUrl.pathname;
