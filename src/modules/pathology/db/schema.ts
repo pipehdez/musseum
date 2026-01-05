@@ -6,10 +6,16 @@ export const roles = sqliteTable("roles", {
   name: text("name").notNull().unique(), // superadmin, admin, patologo
 });
 
+export const modules = sqliteTable("modules", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull().unique(), // e.g., 'pathology'
+});
+
 export const permissions = sqliteTable("permissions", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull().unique(), // e.g., 'pathology:create', 'pathology:edit', 'pathology:delete'
-  module: text("module").notNull(), // e.g., 'pathology'
+  module: text("module").notNull(), // e.g., 'pathology' (legacy, kept for UI grouping)
+  moduleId: integer("module_id").references(() => modules.id), // relational link to modules
 });
 
 export const rolePermissions = sqliteTable("role_permissions", {

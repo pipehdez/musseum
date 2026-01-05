@@ -1,4 +1,4 @@
-CREATE TABLE `pathologies` (
+CREATE OR IGNORE TABLE `pathologies` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
 	`slug` text NOT NULL,

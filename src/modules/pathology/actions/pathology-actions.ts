@@ -5,6 +5,7 @@ import { pathologies, users, roles } from "../db/schema";
 import { eq, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/auth";
+import { hasPermission } from "@/lib/rbac";
 
 export async function getPathologies() {
     return await db
@@ -43,6 +44,10 @@ export async function createPathology(data: {
     images?: string;
 }) {
     const session = await getSession();
+    const allowed = await hasPermission("pathology:create");
+    if (!allowed) {
+        throw new Error("No autorizado");
+    }
 
     const result = await db.insert(pathologies).values({
         ...data,
@@ -61,6 +66,10 @@ export async function updatePathology(id: number, data: {
     details?: string;
     images?: string;
 }) {
+    const allowed = await hasPermission("pathology:edit");
+    if (!allowed) {
+        throw new Error("No autorizado");
+    }
     const result = await db.update(pathologies)
         .set({ ...data, updatedAt: new Date().toISOString() })
         .where(eq(pathologies.id, id))
@@ -73,6 +82,10 @@ export async function updatePathology(id: number, data: {
 }
 
 export async function deletePathology(id: number) {
+    const allowed = await hasPermission("pathology:delete");
+    if (!allowed) {
+        throw new Error("No autorizado");
+    }
     await db.delete(pathologies).where(eq(pathologies.id, id));
     revalidatePath("/admin");
 }

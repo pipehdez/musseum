@@ -16,6 +16,7 @@ export async function POST(request: Request) {
                 name: users.name,
                 email: users.email,
                 password: users.password,
+                roleId: users.roleId,
                 role: roles.name,
             })
             .from(users)
@@ -48,6 +49,7 @@ export async function POST(request: Request) {
                 id: user.id,
                 name: user.name,
                 email: user.email,
+                roleId: user.roleId,
                 role: user.role,
             },
             expires,

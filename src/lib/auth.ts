@@ -14,7 +14,20 @@ export async function comparePassword(password: string, hash: string) {
     return await bcrypt.compare(password, hash);
 }
 
-export async function encrypt(payload: any) {
+type SessionUser = {
+    id: number;
+    name: string;
+    email: string;
+    role?: string | null;
+    roleId?: number | null;
+};
+
+type SessionPayload = {
+    user: SessionUser;
+    expires: Date;
+};
+
+export async function encrypt(payload: SessionPayload) {
     return await new SignJWT(payload)
         .setProtectedHeader({ alg: "HS256" })
         .setIssuedAt()
@@ -22,11 +35,11 @@ export async function encrypt(payload: any) {
         .sign(key);
 }
 
-export async function decrypt(input: string): Promise<any> {
+export async function decrypt(input: string): Promise<SessionPayload> {
     const { payload } = await jwtVerify(input, key, {
         algorithms: ["HS256"],
     });
-    return payload;
+    return payload as SessionPayload;
 }
 
 export async function getSession() {

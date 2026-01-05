@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { users } from "@/modules/pathology/db/schema";
-import { hashPassword } from "@/lib/auth";
+import { hashPassword, getSession } from "@/lib/auth";
 
 export async function POST(request: Request) {
     try {
+        const session = await getSession();
+        const role = session?.user?.role ?? "";
+        if (!session || !["superadmin", "admin"].includes(role)) {
+            return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+        }
         const body = await request.json();
         const { name, email, password, roleId } = body;
 
@@ -22,9 +27,11 @@ export async function POST(request: Request) {
         });
 
         return NextResponse.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Create user error:", error);
-        if (error.code === "SQLITE_CONSTRAINT") {
+        type SqlError = { code?: string };
+        const err = error as SqlError;
+        if (err.code === "SQLITE_CONSTRAINT") {
             return NextResponse.json({ error: "El correo ya está registrado" }, { status: 400 });
         }
         return NextResponse.json({ error: "Error al crear el usuario" }, { status: 500 });

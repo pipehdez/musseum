@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { roles, permissions, rolePermissions, users } from "@/modules/pathology/db/schema";
+import { roles, permissions, rolePermissions, users, modules } from "@/modules/pathology/db/schema";
 import { eq } from "drizzle-orm";
 import { hashPassword } from "./auth";
 
@@ -15,17 +15,24 @@ async function main() {
 
     const [saRole] = await db.select().from(roles).where(eq(roles.name, "superadmin")).limit(1);
 
-    // 2. Create Permissions
+    // 2. Create Modules
+    await db.insert(modules).values([
+        { name: "pathology" },
+    ]).onConflictDoNothing();
+
+    const [pathologyModule] = await db.select().from(modules).where(eq(modules.name, "pathology")).limit(1);
+
+    // 3. Create Permissions
     await db.insert(permissions).values([
-        { name: "pathology:create", module: "pathology" },
-        { name: "pathology:edit", module: "pathology" },
-        { name: "pathology:delete", module: "pathology" },
-        { name: "pathology:view", module: "pathology" },
+        { name: "pathology:create", module: "pathology", moduleId: pathologyModule.id },
+        { name: "pathology:edit", module: "pathology", moduleId: pathologyModule.id },
+        { name: "pathology:delete", module: "pathology", moduleId: pathologyModule.id },
+        { name: "pathology:view", module: "pathology", moduleId: pathologyModule.id },
     ]).onConflictDoNothing();
 
     const allPerms = await db.select().from(permissions);
 
-    // 3. Link Permissions to Superadmin
+    // 4. Link Permissions to Superadmin
     for (const perm of allPerms) {
         await db.insert(rolePermissions).values({
             roleId: saRole.id,
@@ -33,7 +40,7 @@ async function main() {
         }).onConflictDoNothing();
     }
 
-    // 4. Create Initial Superadmin User
+    // 5. Create Initial Superadmin User
     const hashedPassword = await hashPassword("password123");
 
     // Check if superadmin exists
