@@ -22,7 +22,7 @@ export async function GET(
             .from(rolePermissions)
             .where(eq(rolePermissions.roleId, roleId));
 
-        return NextResponse.json(assigned.map(a => a.permissionId));
+        return NextResponse.json(assigned.map(({ permissionId }: { permissionId: number }) => permissionId));
     } catch (error) {
         return NextResponse.json({ error: "Error al cargar permisos del rol" }, { status: 500 });
     }
@@ -32,7 +32,6 @@ export async function POST(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    console.log("POST /api/admin/roles/[id]/permissions", params);
     try {
         const session = await getSession();
         const role = session?.user?.role ?? "";
@@ -53,14 +52,14 @@ export async function POST(
             .select({ id: permissions.id })
             .from(permissions)
             .where(inArray(permissions.id, permissionIds));
-        const existingIds = new Set(existingPerms.map((p) => p.id));
+        const existingIds = new Set(existingPerms.map(({ id }: { id: number }) => id));
         const invalidIds = permissionIds.filter((id: number) => !existingIds.has(id));
         if (invalidIds.length > 0) {
             return NextResponse.json({ error: "Permisos inexistentes", invalidIds }, { status: 400 });
         }
 
         // Transactions with better-sqlite3 must be síncronas
-        db.transaction((tx) => {
+        db.transaction((tx: any) => {
             tx.delete(rolePermissions).where(eq(rolePermissions.roleId, roleId)).run();
             if (permissionIds.length > 0) {
                 tx.insert(rolePermissions).values(

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { decrypt } from "@/lib/auth";
 
-// Add paths that require authentication here
-const protectedRoutes = ["/admin", "/pathology"];
-const publicRoutes = ["/login", "/"];
+// Rutas públicas y protegidas
+const protectedRoutes = ["/admin"];
+const publicRoutes = ["/login", "/", "/pathology"];
 
 export default async function middleware(req: NextRequest) {
     const path = req.nextUrl.pathname;
@@ -17,7 +17,8 @@ export default async function middleware(req: NextRequest) {
         return NextResponse.redirect(new URL("/login", req.nextUrl));
     }
 
-    if (isPublicRoute && session && !path.startsWith("/pathology")) {
+    // Si ya está autenticado y visita /login, redirigir al panel
+    if (path === "/login" && session) {
         return NextResponse.redirect(new URL("/admin", req.nextUrl));
     }
 

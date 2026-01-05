@@ -119,7 +119,7 @@ import {
 
 function QrPreviewDialog({ pathology }: { pathology: any }) {
     // Determine the public URL (mocked for now, but should use environment variable in production)
-    const publicUrl = `http://192.168.1.85:3001/pathology/${pathology.slug}`;
+    const publicUrl = `${process.env.NEXT_PUBLIC_DOMAIN}/pathology/${pathology.slug}`;
 
     return (
         <Dialog>

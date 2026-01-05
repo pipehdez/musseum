@@ -37,12 +37,12 @@ export async function getPathologyById(id: number) {
 }
 
 export async function getPathologyBySlug(slug: string) {
-    const session = await getSession();
-    const role = session?.user?.role ?? "";
-    if (!["superadmin", "admin"].includes(role)) {
-        const allowed = await hasPermission("pathology:view");
-        if (!allowed) return null;
-    }
+    // const session = await getSession();
+    // const role = session?.user?.role ?? "";
+    // if (!["superadmin", "admin"].includes(role)) {
+    //     const allowed = await hasPermission("pathology:view");
+    //     if (!allowed) return null;
+    // }
     return await db.query.pathologies.findFirst({
         where: eq(pathologies.slug, slug),
     });

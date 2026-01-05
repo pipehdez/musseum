@@ -21,7 +21,7 @@ export default async function RolesPage() {
     const allRoles = await db.select().from(roles);
 
     // For each role, we'll fetch the permission count separately or use a join (SQLite count can be tricky with many-to-many in one query without group by)
-    const rolesWithCounts = await Promise.all(allRoles.map(async (role) => {
+    const rolesWithCounts = await Promise.all(allRoles.map(async (role: { id: number; name: string }) => {
         const [permCount] = await db
             .select({ value: count() })
             .from(rolePermissions)

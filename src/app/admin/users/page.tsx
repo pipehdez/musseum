@@ -51,7 +51,7 @@ export default async function UsersPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {allUsers.map((user) => (
+                        {allUsers.map((user: { id: number; name: string; email: string; role: string; createdAt: string | null }) => (
                             <TableRow key={user.id}>
                                 <TableCell>
                                     <div className="flex items-center gap-3">

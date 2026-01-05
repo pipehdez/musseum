@@ -18,7 +18,7 @@ export default async function PathologyDetailPage({ params }: PathologyDetailPag
         notFound();
     }
 
-    const images = pathology.images ? pathology.images.split(",").map(img => img.trim()) : [];
+    const images: string[] = pathology.images ? pathology.images.split(",").map((img: string) => img.trim()) : [];
 
     return (
         <div className="min-h-screen bg-slate-50 pb-12">
@@ -67,7 +67,7 @@ export default async function PathologyDetailPage({ params }: PathologyDetailPag
                         {/* Images Gallery (Simple) */}
                         {images.length > 0 ? (
                             <div className="grid grid-cols-1 gap-4">
-                                {images.map((img, idx) => (
+                                {images.map((img: string, idx: number) => (
                                     <div key={idx} className="relative aspect-video rounded-2xl overflow-hidden border shadow-sm group">
                                         <img
                                             src={img}

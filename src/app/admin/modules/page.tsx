@@ -8,15 +8,18 @@ import { Badge } from "@/components/ui/badge";
 import { Settings2, Plus } from "lucide-react";
 import { getSession } from "@/lib/auth";
 
+type ModuleRow = { id: number; name: string };
+type PermissionRow = { id: number; name: string; moduleId: number | null };
+
 async function getData() {
-  const mods = await db.select().from(modules);
+  const mods = await db.select().from(modules) as ModuleRow[];
   const perms = await db
     .select({
       id: permissions.id,
       name: permissions.name,
       moduleId: permissions.moduleId,
     })
-    .from(permissions);
+    .from(permissions) as PermissionRow[];
   return { mods, perms };
 }
 
@@ -51,10 +54,15 @@ export default async function ModulesPage() {
     }).onConflictDoNothing();
   }
 
-  const permsByModule = mods.reduce<Record<number, { id: number; name: string }[]>>((acc, m) => {
-    acc[m.id] = perms.filter((p) => p.moduleId === m.id).map((p) => ({ id: p.id, name: p.name }));
-    return acc;
-  }, {});
+  const permsByModule = mods.reduce<Record<number, { id: number; name: string }[]>>(
+    (acc: Record<number, { id: number; name: string }[]>, m: ModuleRow) => {
+      acc[m.id] = perms
+        .filter((p: PermissionRow) => p.moduleId === m.id)
+        .map((p: PermissionRow) => ({ id: p.id, name: p.name }));
+      return acc;
+    },
+    {}
+  );
 
   return (
     <div className="space-y-8">

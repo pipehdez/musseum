@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Museo de Patología — Panel administrativo con Next.js, Drizzle y RBAC
 
-## Getting Started
+## Requisitos
+- Node.js 18+
+- pnpm o npm
+- Elegir proveedor de base de datos: SQLite (local), Postgres (local/nube), MySQL, Supabase (Postgres)
 
-First, run the development server:
+## Configuración
+- Copiar `.env.example` a `.env` y ajustar:
+  - `DB_PROVIDER`: sqlite | postgres | mysql | supabase
+  - `DATABASE_URL`: según proveedor
+  - `JWT_SECRET`: cadena segura para firmar sesiones
+- Instalar el driver correspondiente:
+  - SQLite: `npm i better-sqlite3`
+  - Postgres/Supabase: `npm i pg`
+  - MySQL: `npm i mysql2`
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Migraciones y Seed
+- Ejecutar migración inicial para módulos y permisos
+  - `node -e "const Database=require('better-sqlite3'); const fs=require('fs'); const path=require('path'); const sql=fs.readFileSync(path.join('drizzle','0001_add_modules.sql'),'utf8'); const db=new Database(process.env.DATABASE_URL||'sqlite.db'); db.exec(sql); console.log('Migration applied');"`
+- Poblar datos básicos (roles, módulo pathology y permisos, superadmin)
+  - `node ./src/lib/seed.ts`
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Desarrollo
+- `npm run dev`
+- El servidor inicia en `http://localhost:3000` (puede usar otro puerto si 3000 está ocupado).
+- Rutas que acceden a DB corren en Node.js runtime (no Edge).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## RBAC (Roles y Permisos)
+- Roles predefinidos: superadmin, admin, patologo
+- Panel de administración (solo superadmin/admin):
+  - Módulos y Permisos: `/admin/modules`
+  - Usuarios: `/admin/users`
+  - Roles y asignaciones: `/admin/roles`
+- Módulo de Patologías:
+  - Requiere permisos para ver, crear, editar, eliminar
+  - Admin/Superadmin tienen acceso total; otros usuarios deben tener permisos específicos
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Comandos útiles
+- Lint: `npm run lint`
+- Typecheck: `npx tsc --noEmit`
 
-## Learn More
+## Despliegue
+- Configurar variables de entorno en el proveedor (Vercel/host propio).
+- Para Supabase, usar la cadena de conexión de su Postgres administrado en `DATABASE_URL`.
+- Asegurar `JWT_SECRET` fuerte en producción.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Notas
+- Si se usan drivers no instalados (pg, mysql2), el proyecto compilará pero necesitará instalación del driver para ejecutarse con ese proveedor.
+- Middleware y autenticación usan APIs Edge-safe; acceso a DB solo en Node runtime.
