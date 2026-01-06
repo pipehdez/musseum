@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Museo de Patología",
-  description: "Museo de Patología - Facultad de Medicina",
+  title: "Museo de Patología - Facultad de Medicina - Universidad de Simón Bolívar",
+  description: "Museo de Patología - Facultad de Medicina - Universidad de Simón Bolívar",
 };
 
 export default function RootLayout({
